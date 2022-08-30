@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState, useEffect,useCallback} from 'react';
 
 import MoviesList from './components/MoviesList';
 import './App.css';
@@ -8,7 +8,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  async function fetchMoviesHandler(){
+  
+  const fetchMoviesHandler= useCallback (async () => {
+     //use useCallback to prevet useEffect when comparing
+     //this function which is in its dependencies with 
+     //the previou created one to enter in infinite loop 
+     //as it is reference type 
     setIsLoading(true);
     setError(null); //to make sure that we clear any previous errors
     try{
@@ -17,8 +22,8 @@ function App() {
         throw new Error('Something went wrong!');
       }
       const data = await response.json();
-
-
+      
+      
       const transformedMovies = data.results.map(movieData=>{
         return {
           id:movieData.episode_id,
@@ -29,12 +34,17 @@ function App() {
       }); // to convert every object in the coming array into new object
       setMovies(transformedMovies);
       setIsLoading(false);
-
+      
     } catch(error){
       setError(error.message);
       setIsLoading(false);
     }
-  }
+  }, []);
+  
+  useEffect(() => {
+    fetchMoviesHandler();  //to fetch data without clicking on a button
+  }, [fetchMoviesHandler]); 
+
 
   let content = <p>Found no movies.</p>;
 
